@@ -1,0 +1,63 @@
+#sequencer {
+  background-color: #9d9ab3;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border: 1px solid black;
+  font-family: sans-serif;
+
+  #seq-header {
+    box-shadow: 0 2px 4px 0px rgba(0, 0, 0, 0.68);
+  }
+
+  thead {
+    background-color: #333348;
+    color: aliceblue;
+  }
+
+  td:hover {
+    cursor: pointer;
+  }
+
+  td.on {
+    background-color: green;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.47);
+  }
+
+  td.on.sq1 { background-color: green; }
+  td.on.sq2 { background-color: yellow; }
+  td.on.tri { background-color: orange; }
+  td.on.nos { background-color: purple; }
+
+  th, td {
+    width: 20px;
+    padding: 2px;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+  }
+
+  td:nth-child(4n+1) {
+    border-right: 1px solid #2908da;
+  }
+
+  td:nth-child(5n+1) {
+    border-left: 1px solid white;
+  }
+
+  td:first-child, td:last-child {
+    border-right: 1px solid black;
+  }
+
+  th:first-child {
+    background-color: #23233a;
+    color: aliceblue;
+  }
+
+  tr {
+    border-bottom: 1px solid black;
+    height: 30px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #625f8a;
+  }
+}
