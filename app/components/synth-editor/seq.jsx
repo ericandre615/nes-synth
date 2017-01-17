@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { setNoteData } from '../../actions/synth-actions'; 
+import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions'; 
+import { initSynthContext, scheduler, play } from '../../lib/synth-functions';
 
 import './seq.less';
 
@@ -14,16 +15,44 @@ const Seq = React.createClass({
     e.preventDefault();
 
     cell.classList.toggle('on');
+    let noteFreq = 0;
+
+    switch(cell.dataset.chan) {
+      case 'sq1':
+        noteFreq = 440;
+      case 'sq2':
+        noteFreq = 220;
+      case 'tri':
+        noteFreq = 320;
+      case 'nos':
+        noteFreq = 100;
+      default:
+        noteFreq = 0;
+    };
 
     this.props.setNoteData({
-      bar: 1,
+      bar: 0,
       beat: parseInt(cell.dataset.beat, 10),
-      note: 'A2',
-      gain: 1,
+      note: noteFreq,
+      gain: (cell.classList.contains('on')) ? 1 : 0,
       filter: null,
-      length: 1,
+      length: 0.05,
       chan: cell.dataset.chan
     });
+  },
+
+  playHandler(e) {
+    e.preventDefault();
+    console.log('pressed play');
+    this.props.setTimeoutId(play(this.props.synth, scheduler, this.props.updateNoteTime, this.props.setPlayStatus));
+  },
+
+  componentWillMount() {
+    if(!this.props.synth.initialized) {
+      const synthContext = initSynthContext();
+      console.log('SynthContext: ', synthContext);
+      this.props.initAudioContext(synthContext);
+    }
   },
 
   render() {
@@ -82,6 +111,8 @@ const Seq = React.createClass({
     });
 
     return (
+      <div id="temp">
+        <button id="play" className="transport" onClick={ this.playHandler }>Play</button>
       <table id="sequencer">
         <colgroup span="17"></colgroup>
         <thead>
@@ -110,6 +141,7 @@ const Seq = React.createClass({
         </tbody>
         <tfoot></tfoot>
       </table>
+        </div>
     );
   }
 });
@@ -123,6 +155,10 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setNoteData: note => dispatch(setNoteData(note)),
+    initAudioContext: synth => dispatch(initAudioContext(synth)),
+    updateNoteTime: nextNote => dispatch(updateNoteTime(nextNote)),
+    setPlayStatus: isPlaying => dispatch(setPlayStatus(isPlaying)),
+    setTimeoutId: timeoutId => dispatch(setTimeoutId(timeoutId))
   };
 };
 
