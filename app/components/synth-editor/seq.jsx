@@ -8,7 +8,20 @@ import './seq.less';
 const bar = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const cell = bar.slice();
 
+
+let clockWorker = null;
+
 const Seq = React.createClass({
+  clockData: {
+    isPlaying: false, // initialize to false
+    nextNoteTime: 0.0, // when the next note is due
+    startTime: 0, // start time of sequence
+    beatIndex: 0, // which beat are we currently on
+    currentNote: 0, // note that is currently last scheduled
+    lookAhead: 25.0, // How frequently to call schedule (in milliseconds)
+    scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
+  },
+
   clickHandler(e) {
     const cell = e.target;
 
@@ -44,7 +57,7 @@ const Seq = React.createClass({
   playHandler(e) {
     e.preventDefault();
     console.log('pressed play');
-    this.props.setTimeoutId(play(this.props.synth, scheduler, this.props.updateNoteTime, this.props.setPlayStatus));
+    this.props.setTimeoutId(play(this.props.synth, this.clockData, clockWorker, this.props.setPlayStatus));
   },
 
   componentWillMount() {
@@ -53,6 +66,20 @@ const Seq = React.createClass({
       console.log('SynthContext: ', synthContext);
       this.props.initAudioContext(synthContext);
     }
+  },
+
+  componentDidMount() {
+    clockWorker = new Worker('workers/synth-worker.js');
+
+    clockWorker.onmessage = (e) => {
+      if(e.data == 'tick') {
+        scheduler(this.props.synth, this.clockData);
+      }
+    };
+
+    clockWorker.postMessage({
+      'interval': this.props.synth.lookAhead
+    });
   },
 
   render() {

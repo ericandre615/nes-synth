@@ -10,45 +10,41 @@ const initSynthContext = () => {
   return { context, masterGain }
 };
 
-const play = (synth, scheduler = null, updateNoteTime = null, setPlayStatus = null) => {
-  const isPlaying = !synth.isPlaying;
+const play = (synth, clockData, clockWorker = null, setPlayStatus = null) => {
+  clockData.isPlaying = !clockData.isPlaying;
 
-  console.log('isPlaying: ', isPlaying);
+  console.log('isPlaying: ', clockData.isPlaying);
 
-  if(!scheduler) {
-    return new Error('2nd argument must be a scheduler function');
-  }
-
-  if(setPlayStatus) {
-    setPlayStatus(isPlaying);
-  } else {
-    synth.isPlaying = isPlaying;
-  }
-
-  if(synth.isPlaying) {
+  if(clockData.isPlaying) {
     let currentNote = 0;
     let nextNoteTime = synth.context.currentTime;
 
-    if(updateNoteTime) {
-      updateNoteTime({ nextNoteTime, currentNote });
+    clockData.nextNoteTime = nextNoteTime;
+    clockData.currentNote = currentNote;
+  }
+
+  if(clockWorker) {
+    if(clockData.isPlaying) {
+      clockWorker.postMessage('start');
     } else {
-      synth.nextNoteTime = nextNoteTime;
-      synth.currentNote = currentNote;
+      clockWorker.postMessage('stop');
     }
   }
 
-  if(isPlaying) {
-    return requestAnimationFrame((rafTime) => {
-      console.log('raf looping', synth);
-      scheduler(synth, updateNoteTime);
-    });
-  } else {
-    cancelAnimationFrame(synth.timeoutId);
+ // if(isPlaying) {
+ //   return requestAnimationFrame((rafTime) => {
+ //     console.log('raf looping', synth);
+ //     scheduler(synth, updateNoteTime);
+ //   });
+ // } else {
+ //   cancelAnimationFrame(synth.timeoutId);
+ //   return null;
+ // }
+
     return null;
-  }
 };
 
-const setNextNote = (synth) => {
+const setNextNote = (synth, clockData) => {
   // Advance current note and time by 16th
   const secondsPerBeat = 60.0 / synth.tempo;
   const nextNoteTime = synth.nextNoteTime + 0.25 * synth.secondsPerBeat; // add beat length to last beat time
@@ -66,7 +62,7 @@ const setNextNote = (synth) => {
   }
 };
 
-const scheduleNote = (synth) => {
+const scheduleNote = (synth, clockData) => {
   const sq1 = synth.context.createOscillator();
   const sq2 = synth.context.createOscillator();
   const tri = synth.context.createOscillator();
@@ -77,42 +73,41 @@ const scheduleNote = (synth) => {
   tri.type = 'triangle';
   nos.type = 'sawtooth'; // temp for testing
 
-  sq1.frequency.value = synth.bars[0].sq1[synth.currentNote].note;
-  sq2.frequency.value = synth.bars[0].sq2[synth.currentNote].note;
-  tri.frequency.value = synth.bars[0].tri[synth.currentNote].note;
-  nos.frequency.value = synth.bars[0].nos[synth.currentNote].note;
+  sq1.frequency.value = synth.bars[0].sq1[clockData.currentNote].note;
+  sq2.frequency.value = synth.bars[0].sq2[clockData.currentNote].note;
+  tri.frequency.value = synth.bars[0].tri[clockData.currentNote].note;
+  nos.frequency.value = synth.bars[0].nos[clockData.currentNote].note;
 
   sq1.connect(synth.context.destination);
   sq2.connect(synth.context.destination);
   tri.connect(synth.context.destination);
   nos.connect(synth.context.destination);
 
-  sq1.start(synth.nextNoteTime);
-  sq2.start(synth.nextNoteTime);
-  tri.start(synth.nextNoteTime);
-  nos.start(synth.nextNoteTime);
+  sq1.start(clockData.nextNoteTime);
+  sq2.start(clockData.nextNoteTime);
+  tri.start(clockData.nextNoteTime);
+  nos.start(clockData.nextNoteTime);
 
-  sq1.stop(synth.nextNoteTime + synth.bars[0].sq1[synth.currentNote].length);
-  sq2.stop(synth.nextNoteTime + synth.bars[0].sq2[synth.currentNote].length);
-  tri.stop(synth.nextNoteTime + synth.bars[0].tri[synth.currentNote].length);
-  nos.stop(synth.nextNoteTime + synth.bars[0].nos[synth.currentNote].length);
+  sq1.stop(clockData.nextNoteTime + synth.bars[0].sq1[clockData.currentNote].length);
+  sq2.stop(clockData.nextNoteTime + synth.bars[0].sq2[clockData.currentNote].length);
+  tri.stop(clockData.nextNoteTime + synth.bars[0].tri[clockData.currentNote].length);
+  nos.stop(clockData.nextNoteTime + synth.bars[0].nos[clockData.currentNote].length);
 
   return true;
 };
 
-const scheduler = (synth, updateNoteTime = null) => {
+const scheduler = (synth, clockData) => {
   // schedule notes and advance pointer
 
-  while(synth.nextNoteTime < synth.context.currentTime + synth.scheduleAheadTime) {
-    scheduleNote(synth);
+  console.log('run scheduler');
+
+  while(clockData.nextNoteTime < synth.context.currentTime + clockData.scheduleAheadTime) {
+    scheduleNote(synth, clockData);
+    console.log('loop');
     const nextNote = setNextNote(synth);
 
-    if(updateNoteTime) {
-      updateNoteTime(nextNote)
-    } else {
-      synth.nextNoteTime = nextNote.nextNoteTime;
-      synth.currentNote = nextNote.currentNote;
-    }
+    clockData.nextNoteTime = nextNote.nextNoteTime;
+    clockData.currentNote = nextNote.currentNote;
   }
 };
 
