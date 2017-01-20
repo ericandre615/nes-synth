@@ -48,6 +48,10 @@ const Seq = React.createClass({
         noteFreq = 0;
     };
 
+    if(!cell.classList.contains('on')) {
+      // note off
+      noteFreq = 0;
+    }
 
     this.props.setNoteData({
       bar: 0,
