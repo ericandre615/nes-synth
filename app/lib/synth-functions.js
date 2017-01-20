@@ -13,8 +13,6 @@ const initSynthContext = () => {
 const play = (synth, clockData, clockWorker = null, setPlayStatus = null) => {
   clockData.isPlaying = !clockData.isPlaying;
 
-  console.log('isPlaying: ', clockData.isPlaying);
-
   if(clockData.isPlaying) {
     let currentNote = 0;
     let nextNoteTime = synth.context.currentTime;
@@ -47,8 +45,8 @@ const play = (synth, clockData, clockWorker = null, setPlayStatus = null) => {
 const setNextNote = (synth, clockData) => {
   // Advance current note and time by 16th
   const secondsPerBeat = 60.0 / synth.tempo;
-  const nextNoteTime = synth.nextNoteTime + 0.25 * synth.secondsPerBeat; // add beat length to last beat time
-  let currentNote = synth.currentNote + 1; 
+  const nextNoteTime = clockData.nextNoteTime + 0.25 * secondsPerBeat; // add beat length to last beat time
+  let currentNote = clockData.currentNote + 1;
 
   if(currentNote == 16) {
     // wrap back to beginning of bar
@@ -99,12 +97,9 @@ const scheduleNote = (synth, clockData) => {
 const scheduler = (synth, clockData) => {
   // schedule notes and advance pointer
 
-  console.log('run scheduler');
-
   while(clockData.nextNoteTime < synth.context.currentTime + clockData.scheduleAheadTime) {
     scheduleNote(synth, clockData);
-    console.log('loop');
-    const nextNote = setNextNote(synth);
+    const nextNote = setNextNote(synth, clockData);
 
     clockData.nextNoteTime = nextNote.nextNoteTime;
     clockData.currentNote = nextNote.currentNote;
