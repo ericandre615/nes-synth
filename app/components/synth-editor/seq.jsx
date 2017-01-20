@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions'; 
+import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions';
 import { initSynthContext, scheduler, play } from '../../lib/synth-functions';
 
 import './seq.less';
@@ -8,19 +8,20 @@ import './seq.less';
 const bar = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const cell = bar.slice();
 
+const clockData = {
+  isPlaying: false, // initialize to false
+  nextNoteTime: 0.0, // when the next note is due
+  startTime: 0, // start time of sequence
+  beatIndex: 0, // which beat are we currently on
+  currentNote: 0, // note that is currently last scheduled
+  lookAhead: 25.0, // How frequently to call schedule (in milliseconds)
+  scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
+};
+
 
 let clockWorker = null;
 
 const Seq = React.createClass({
-  clockData: {
-    isPlaying: false, // initialize to false
-    nextNoteTime: 0.0, // when the next note is due
-    startTime: 0, // start time of sequence
-    beatIndex: 0, // which beat are we currently on
-    currentNote: 0, // note that is currently last scheduled
-    lookAhead: 25.0, // How frequently to call schedule (in milliseconds)
-    scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
-  },
 
   clickHandler(e) {
     const cell = e.target;
@@ -33,15 +34,20 @@ const Seq = React.createClass({
     switch(cell.dataset.chan) {
       case 'sq1':
         noteFreq = 440;
+        break;
       case 'sq2':
         noteFreq = 220;
+        break;
       case 'tri':
         noteFreq = 320;
+        break;
       case 'nos':
         noteFreq = 100;
+        break;
       default:
         noteFreq = 0;
     };
+
 
     this.props.setNoteData({
       bar: 0,
@@ -56,14 +62,14 @@ const Seq = React.createClass({
 
   playHandler(e) {
     e.preventDefault();
-    console.log('pressed play');
-    this.props.setTimeoutId(play(this.props.synth, this.clockData, clockWorker, this.props.setPlayStatus));
+
+    this.props.setTimeoutId(play(this.props.synth, clockData, clockWorker, this.props.setPlayStatus));
   },
 
   componentWillMount() {
     if(!this.props.synth.initialized) {
       const synthContext = initSynthContext();
-      console.log('SynthContext: ', synthContext);
+
       this.props.initAudioContext(synthContext);
     }
   },
@@ -73,12 +79,12 @@ const Seq = React.createClass({
 
     clockWorker.onmessage = (e) => {
       if(e.data == 'tick') {
-        scheduler(this.props.synth, this.clockData);
+        scheduler(this.props.synth, clockData);
       }
     };
 
     clockWorker.postMessage({
-      'interval': this.props.synth.lookAhead
+      'interval': clockData.lookAhead
     });
   },
 
