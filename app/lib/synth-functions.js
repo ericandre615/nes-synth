@@ -10,36 +10,74 @@ const initSynthContext = () => {
   return { context, masterGain }
 };
 
-const play = (synth, clockData, clockWorker = null, setPlayStatus = null) => {
-  clockData.isPlaying = !clockData.isPlaying;
+const play = (synth, clockData, clockWorker = null, setPlayStatus = null, drawStep = drawStep) => {
+  const isPlaying = !synth.isPlaying;
 
-  if(clockData.isPlaying) {
-    let currentNote = 0;
+  if(setPlayStatus) {
+    setPlayStatus(isPlaying);
+  } else {
+    synth.isPlaying = isPlaying;
+  }
+
+  if(isPlaying) {
     let nextNoteTime = synth.context.currentTime;
 
     clockData.nextNoteTime = nextNoteTime;
-    clockData.currentNote = currentNote;
   }
 
   if(clockWorker) {
-    if(clockData.isPlaying) {
+    if(isPlaying) {
       clockWorker.postMessage('start');
     } else {
       clockWorker.postMessage('stop');
     }
   }
 
- // if(isPlaying) {
- //   return requestAnimationFrame((rafTime) => {
- //     console.log('raf looping', synth);
- //     scheduler(synth, updateNoteTime);
- //   });
- // } else {
- //   cancelAnimationFrame(synth.timeoutId);
- //   return null;
- // }
-
+  if(isPlaying) {
+    return requestAnimationFrame(() => {
+      drawStep(clockData.currentStep);
+    });
+  } else {
+    cancelAnimationFrame(synth.timeoutId);
     return null;
+  }
+
+    return true;
+};
+
+const stop = (synth, clockData, clockWorker = null, setPlayStatus = null, drawStep = drawStep) => {
+  const isPlaying = !synth.isPlaying;
+
+  if(setPlayStatus) {
+    setPlayStatus(isPlaying);
+  } else {
+    synth.isPlaying = isPlaying;
+  }
+
+  if(clockWorker) {
+    if(!isPlaying) {
+      clockWorker.postMessage('stop');
+    }
+  }
+
+  if(isPlaying) {
+    let nextNoteTime = synth.context.currentTime;
+
+    clockData.nextNoteTime = nextNoteTime;
+    clockData.currentNote = 0;
+  }
+
+  if(!isPlaying) {
+    cancelAnimationFrame(synth.timeoutId);
+    return null;
+  }
+
+  return true;
+};
+
+const resetPlayHead = (resetPosition = 0, clockData) => {
+  clockData.currentNote = resetPosition;
+  return clockData;
 };
 
 const setNextNote = (synth, clockData) => {
@@ -106,13 +144,20 @@ const scheduler = (synth, clockData) => {
   }
 };
 
+const drawStep = (step = 0) => {
+  console.log(`Draw step: ${step}`);
+};
+
 export {
   createNewBar,
   initSynthContext,
   scheduler,
   setNextNote,
   scheduleNote,
-  play
+  play,
+  stop,
+  resetPlayHead,
+  drawStep
 }
 
 export default {
@@ -121,5 +166,8 @@ export default {
   scheduler,
   setNextNote,
   scheduleNote,
-  play
+  play,
+  stop,
+  resetPlayHead,
+  drawStep
 };

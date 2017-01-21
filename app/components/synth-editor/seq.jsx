@@ -1,7 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions';
-import { initSynthContext, scheduler, play } from '../../lib/synth-functions';
+import { initSynthContext, scheduler, play, stop, resetPlayHead, drawStep } from '../../lib/synth-functions';
+import TransportButtons from './transport-buttons.jsx';
 
 import './seq.less';
 
@@ -22,6 +23,16 @@ const clockData = {
 let clockWorker = null;
 
 const Seq = React.createClass({
+
+  clickColumnHandler(e) {
+    const col = e.target;
+    const resetPosition = parseInt(col.innerHTML, 10) || 0;
+
+    console.log('reset ', resetPosition);
+    console.log(e.target.innerHTML);
+
+    resetPlayHead(resetPosition, clockData)
+  },
 
   clickHandler(e) {
     const cell = e.target;
@@ -67,7 +78,24 @@ const Seq = React.createClass({
   playHandler(e) {
     e.preventDefault();
 
-    this.props.setTimeoutId(play(this.props.synth, clockData, clockWorker, this.props.setPlayStatus));
+    const btn = e.target;
+
+    if(btn.classList.toggle('active')) {
+      btn.classList.remove('icon-play');
+      btn.classList.add('icon-pause');
+    } else {
+      btn.classList.remove('icon-pause');
+      btn.classList.add('icon-play');
+    };
+
+    this.props.setTimeoutId(play(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep));
+  },
+
+  stopHandler(e) {
+    e.preventDefault();
+    if(this.props.synth.isPlaying) {
+      this.props.setTimeoutId(stop(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep));
+    }
   },
 
   componentWillMount() {
@@ -149,11 +177,14 @@ const Seq = React.createClass({
 
     return (
       <div id="temp">
-        <button id="play" className="transport" onClick={ this.playHandler }>Play</button>
+        <TransportButtons
+          playHandler={ this.playHandler }
+          stopHandler={ this.stopHandler }
+        />
       <table id="sequencer">
         <colgroup span="17"></colgroup>
         <thead>
-          <tr id="seq-header">
+          <tr id="seq-header" onClick={ this.clickColumnHandler }>
             <th scope="col"> Chan </th>
             { bars }
           </tr>
