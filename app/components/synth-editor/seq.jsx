@@ -75,6 +75,12 @@ const Seq = React.createClass({
     });
   },
 
+  rightClickHandler(e) {
+    e.preventDefault();
+    console.log('right click');
+    console.log(e.target);
+  },
+
   playHandler(e) {
     e.preventDefault();
 
@@ -88,13 +94,13 @@ const Seq = React.createClass({
       btn.classList.add('icon-play');
     };
 
-    this.props.setTimeoutId(play(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep));
+    this.props.setTimeoutId(play(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep.bind(this, clockData.currentNote)));
   },
 
   stopHandler(e) {
     e.preventDefault();
     if(this.props.synth.isPlaying) {
-      this.props.setTimeoutId(stop(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep));
+      this.props.setTimeoutId(stop(this.props.synth, clockData, clockWorker, this.props.setPlayStatus, drawStep.bind(this, clockData.currentNote)));
     }
   },
 
@@ -118,6 +124,10 @@ const Seq = React.createClass({
     clockWorker.postMessage({
       'interval': clockData.lookAhead
     });
+
+    //requestAnimationFrame(() => {
+    //  drawStep(clockData.currentNote);
+    //});
   },
 
   render() {
@@ -135,6 +145,7 @@ const Seq = React.createClass({
           data-chan="sq1"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
+          onContextMenu={ this.rightClickHandler }
         />
       );
     });
@@ -147,6 +158,7 @@ const Seq = React.createClass({
           data-chan="sq2"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
+          onContextMenu={ this.rightClickHandler }
         />
       );
     });
@@ -159,6 +171,7 @@ const Seq = React.createClass({
           data-chan="tri"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
+          onContextMenu={ this.rightClickHandler }
         />
       );
     });
@@ -171,6 +184,7 @@ const Seq = React.createClass({
           data-chan="nos"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
+          onContextMenu={ this.rightClickHandler }
         />
       );
     });

@@ -33,14 +33,14 @@ const play = (synth, clockData, clockWorker = null, setPlayStatus = null, drawSt
     }
   }
 
-  if(isPlaying) {
-    return requestAnimationFrame(() => {
-      drawStep(clockData.currentStep);
-    });
-  } else {
-    cancelAnimationFrame(synth.timeoutId);
-    return null;
-  }
+//  if(isPlaying) {
+//    return requestAnimationFrame(() => {
+//      drawStep(clockData.currentNote)
+//    });
+//  } else {
+//    cancelAnimationFrame(synth.timeoutId);
+//    return null;
+//  }
 
     return true;
 };
@@ -146,6 +146,9 @@ const scheduler = (synth, clockData) => {
 
 const drawStep = (step = 0) => {
   console.log(`Draw step: ${step}`);
+  requestAnimationFrame(() => {
+    drawStep(step);
+  });
 };
 
 export {
