@@ -1,4 +1,4 @@
-import { SET_NOTE_DATA, INIT_AUDIO_CONTEXT, UPDATE_NOTE_TIME, SET_PLAY_STATUS, SET_TIMEOUT_ID } from './action-types';
+import { SET_NOTE_DATA, SET_CURRENT_NOTE, INIT_AUDIO_CONTEXT, UPDATE_NOTE_TIME, SET_PLAY_STATUS, SET_TIMEOUT_ID } from './action-types';
 
 export function setNoteData(note) {
   return {
@@ -6,6 +6,13 @@ export function setNoteData(note) {
     note
   };
 };
+
+export function setCurrentNote(note) {
+  return {
+    type: SET_CURRENT_NOTE,
+    note
+  };
+}
 
 export function initAudioContext({ context, masterGain }) {
   return {
@@ -37,4 +44,4 @@ export function setTimeoutId(timeoutId) {
   }
 };
 
-export default { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId };
+export default { setNoteData, setCurrentNote, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId };

@@ -18,10 +18,12 @@ const NoteList = React.createClass({
         return (
           <li
             key={ note }
-            id={ note }
             className="note"
+            data-note={ note }
             data-freq={ this.props.notes[note].freq }
-            data-hex={ this.props.notes[note].hex }>
+            data-hex={ this.props.notes[note].hex }
+            onClick={ this.props.onClick }
+          >
               { note }
           </li>
         );

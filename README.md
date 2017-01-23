@@ -9,3 +9,6 @@ for each different synth. Need to figure out noise (not so easy on web audio, th
 `npm run dev` or `yarn dev` to start dev server
 
 just push sequencer buttons on and off and hit play. Will change while it's playing.
+
+Now you can select different note values for each note. Right click on the note to make that
+the current note, then select the value below.

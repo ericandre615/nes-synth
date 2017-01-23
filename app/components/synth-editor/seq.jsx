@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions';
+import { setNoteData, setCurrentNote, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions';
 import { initSynthContext, scheduler, play, stop, resetPlayHead, drawStep } from '../../lib/synth-functions';
 import TransportButtons from './transport-buttons.jsx';
 import NoteAttibutes from './note-attributes.jsx';
@@ -30,9 +30,6 @@ const Seq = React.createClass({
     const col = e.target;
     const resetPosition = parseInt(col.innerHTML, 10) || 0;
 
-    console.log('reset ', resetPosition);
-    console.log(e.target.innerHTML);
-
     resetPlayHead(resetPosition, clockData)
   },
 
@@ -42,45 +39,37 @@ const Seq = React.createClass({
     e.preventDefault();
 
     cell.classList.toggle('on');
-    let noteFreq = noteMap['rest'].freq;
 
-    switch(cell.dataset.chan) {
-      case 'sq1':
-        noteFreq = noteMap['A4'].freq;
-        break;
-      case 'sq2':
-        noteFreq = noteMap['C4'].freq;
-        break;
-      case 'tri':
-        noteFreq = noteMap['G4'].freq;
-        break;
-      case 'nos':
-        noteFreq = noteMap['B3'].freq;
-        break;
-      default:
-        noteFreq = noteMap['rest'].freq;
-    };
-
-    if(!cell.classList.contains('on')) {
-      // note off
-      noteFreq = 0;
-    }
-
-    this.props.setNoteData({
+    const noteValue = (cell.classList.contains('on')) ? 'A4' : 'rest';
+    const note = {
       bar: 0,
       beat: parseInt(cell.dataset.beat, 10),
-      note: noteFreq,
+      note: noteValue,
       gain: (cell.classList.contains('on')) ? 1 : 0,
       filter: null,
       length: 0.05,
       chan: cell.dataset.chan
-    });
+    };
+
+    this.props.setNoteData(note);
+    this.props.setCurrentNote(note);
   },
 
   rightClickHandler(e) {
+    const cell = e.target;
     e.preventDefault();
-    console.log('right click');
-    console.log(e.target);
+
+    const note = {
+      bar: 0,
+      beat: parseInt(cell.dataset.beat, 10),
+      note: cell.dataset.note,
+      gain: (cell.classList.contains('on')) ? 1 : 0,
+      filter: null,
+      length: 0.05,
+      chan: cell.dataset.chan
+    };
+
+    this.props.setCurrentNote(note);
   },
 
   playHandler(e) {
@@ -119,7 +108,7 @@ const Seq = React.createClass({
 
     clockWorker.onmessage = (e) => {
       if(e.data == 'tick') {
-        scheduler(this.props.synth, clockData);
+        scheduler(this.props.synth, clockData, noteMap);
       }
     };
 
@@ -144,6 +133,7 @@ const Seq = React.createClass({
         <td
           key={ `sq1-${item}` }
           className={ `col-${item} sq1` }
+          data-note="rest"
           data-chan="sq1"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
@@ -157,6 +147,7 @@ const Seq = React.createClass({
         <td
           key={ `sq2-${item}` }
           className={ `col-${item} sq2` }
+          data-note="rest"
           data-chan="sq2"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
@@ -170,6 +161,7 @@ const Seq = React.createClass({
         <td
           key={ `tri-${item}` }
           className={ `col-${item} tri` }
+          data-note="rest"
           data-chan="tri"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
@@ -183,6 +175,7 @@ const Seq = React.createClass({
         <td
           key={ `nos-${item}` }
           className={ `col-${item} nos` }
+          data-note="rest"
           data-chan="nos"
           data-beat={ item + 1 }
           onClick={ this.clickHandler }
@@ -225,7 +218,7 @@ const Seq = React.createClass({
         </tbody>
         <tfoot></tfoot>
       </table>
-        <NoteAttibutes />
+        <NoteAttibutes setNoteData={ this.props.setNoteData } currentNote={ this.props.synth.currentNote } />
         </div>
     );
   }
@@ -240,6 +233,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     setNoteData: note => dispatch(setNoteData(note)),
+    setCurrentNote: note => dispatch(setCurrentNote(note)),
     initAudioContext: synth => dispatch(initAudioContext(synth)),
     updateNoteTime: nextNote => dispatch(updateNoteTime(nextNote)),
     setPlayStatus: isPlaying => dispatch(setPlayStatus(isPlaying)),

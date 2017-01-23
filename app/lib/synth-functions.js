@@ -98,7 +98,7 @@ const setNextNote = (synth, clockData) => {
   }
 };
 
-const scheduleNote = (synth, clockData) => {
+const scheduleNote = (synth, clockData, noteMap) => {
   const sq1 = synth.context.createOscillator();
   const sq2 = synth.context.createOscillator();
   const tri = synth.context.createOscillator();
@@ -109,10 +109,10 @@ const scheduleNote = (synth, clockData) => {
   tri.type = 'triangle';
   nos.type = 'sawtooth'; // temp for testing
 
-  sq1.frequency.value = synth.bars[0].sq1[clockData.currentNote].note;
-  sq2.frequency.value = synth.bars[0].sq2[clockData.currentNote].note;
-  tri.frequency.value = synth.bars[0].tri[clockData.currentNote].note;
-  nos.frequency.value = synth.bars[0].nos[clockData.currentNote].note;
+  sq1.frequency.value = noteMap[synth.bars[0].sq1[clockData.currentNote].note].freq;
+  sq2.frequency.value = noteMap[synth.bars[0].sq2[clockData.currentNote].note].freq;
+  tri.frequency.value = noteMap[synth.bars[0].tri[clockData.currentNote].note].freq;
+  nos.frequency.value = noteMap[synth.bars[0].nos[clockData.currentNote].note].freq;
 
   sq1.connect(synth.context.destination);
   sq2.connect(synth.context.destination);
@@ -132,11 +132,11 @@ const scheduleNote = (synth, clockData) => {
   return true;
 };
 
-const scheduler = (synth, clockData) => {
+const scheduler = (synth, clockData, noteMap) => {
   // schedule notes and advance pointer
 
   while(clockData.nextNoteTime < synth.context.currentTime + clockData.scheduleAheadTime) {
-    scheduleNote(synth, clockData);
+    scheduleNote(synth, clockData, noteMap);
     const nextNote = setNextNote(synth, clockData);
 
     clockData.nextNoteTime = nextNote.nextNoteTime;
@@ -145,7 +145,6 @@ const scheduler = (synth, clockData) => {
 };
 
 const drawStep = (step = 0) => {
-  console.log(`Draw step: ${step}`);
   requestAnimationFrame(() => {
     drawStep(step);
   });

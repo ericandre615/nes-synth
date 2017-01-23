@@ -5,7 +5,6 @@ import './note-attributes.less';
 
 const NoteAttributes = React.createClass({
   onChange(e) {
-    console.log('filtering ', e.target.value);
     this.setState({
       selected: e.target.value
     });
@@ -15,6 +14,16 @@ const NoteAttributes = React.createClass({
     this.state = {
       selected: 1
     }
+  },
+
+  assignNote(e) {
+    e.preventDefault();
+    const noteValue = e.target.dataset.note;
+    const note = Object.assign({}, this.props.currentNote, {
+      note: noteValue
+    });
+
+    this.props.setNoteData(note);
   },
 
   render() {
@@ -29,7 +38,7 @@ const NoteAttributes = React.createClass({
         <select id="octive-select" value={ this.state.selected } onChange={ this.onChange }>
           { octives }
         </select>
-        <NoteList filter={ this.state.selected } />
+        <NoteList filter={ this.state.selected } onClick={ this.assignNote } />
       </div>
     );
   }

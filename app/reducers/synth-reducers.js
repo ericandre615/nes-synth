@@ -1,4 +1,4 @@
-import { SET_NOTE_DATA, INIT_AUDIO_CONTEXT, UPDATE_NOTE_TIME, SET_PLAY_STATUS, SET_TIMEOUT_ID } from '../actions/action-types';
+import { SET_NOTE_DATA, SET_CURRENT_NOTE, INIT_AUDIO_CONTEXT, UPDATE_NOTE_TIME, SET_PLAY_STATUS, SET_TIMEOUT_ID } from '../actions/action-types';
 import { synthActions } from '../actions';
 import { createNewBar } from '../lib/synth-functions';
 
@@ -7,7 +7,7 @@ const initNotesPerBar = 16;
 const noteModel = {
   bar: 0,
   beat: 0,
-  note: 0,
+  note: 'rest',
   gain: 0,
   filter: null,
   length: 0.05,
@@ -31,6 +31,7 @@ const initialState = { // synth
   currentNote: 0, // note that is currently last scheduled
   lookAhead: 25.0, // How frequently to call schedule (in milliseconds)
   scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
+  currentNote: {},
   bars: [{
     sq1: createNewBar(initNotesPerBar, Object.assign({}, noteModel, { chan: 'sq1' })),
     sq2: createNewBar(initNotesPerBar, Object.assign({}, noteModel, { chan: 'sq2' })),
@@ -59,6 +60,10 @@ const synthReducers = (state = initialState, action) => {
 
       return Object.assign({}, state, {
         bars: newBars
+      });
+    case SET_CURRENT_NOTE:
+      return Object.assign({}, state, {
+        currentNote: action.note
       });
     case UPDATE_NOTE_TIME:
       return Object.assign({}, state, {
