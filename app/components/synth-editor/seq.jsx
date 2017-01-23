@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { setNoteData, initAudioContext, updateNoteTime, setPlayStatus, setTimeoutId } from '../../actions/synth-actions';
 import { initSynthContext, scheduler, play, stop, resetPlayHead, drawStep } from '../../lib/synth-functions';
 import TransportButtons from './transport-buttons.jsx';
+import NoteAttibutes from './note-attributes.jsx';
+import noteMap from '../../lib/notes';
 
 import './seq.less';
 
@@ -40,23 +42,23 @@ const Seq = React.createClass({
     e.preventDefault();
 
     cell.classList.toggle('on');
-    let noteFreq = 0;
+    let noteFreq = noteMap['rest'].freq;
 
     switch(cell.dataset.chan) {
       case 'sq1':
-        noteFreq = 440;
+        noteFreq = noteMap['A4'].freq;
         break;
       case 'sq2':
-        noteFreq = 220;
+        noteFreq = noteMap['C4'].freq;
         break;
       case 'tri':
-        noteFreq = 320;
+        noteFreq = noteMap['G4'].freq;
         break;
       case 'nos':
-        noteFreq = 100;
+        noteFreq = noteMap['B3'].freq;
         break;
       default:
-        noteFreq = 0;
+        noteFreq = noteMap['rest'].freq;
     };
 
     if(!cell.classList.contains('on')) {
@@ -223,6 +225,7 @@ const Seq = React.createClass({
         </tbody>
         <tfoot></tfoot>
       </table>
+        <NoteAttibutes />
         </div>
     );
   }
