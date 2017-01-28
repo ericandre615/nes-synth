@@ -135,7 +135,7 @@ const Seq = React.createClass({
           className={ `col-${item} sq1` }
           data-note="rest"
           data-chan="sq1"
-          data-beat={ item + 1 }
+          data-beat={ item }
           onClick={ this.clickHandler }
           onContextMenu={ this.rightClickHandler }
         />
@@ -149,7 +149,7 @@ const Seq = React.createClass({
           className={ `col-${item} sq2` }
           data-note="rest"
           data-chan="sq2"
-          data-beat={ item + 1 }
+          data-beat={ item }
           onClick={ this.clickHandler }
           onContextMenu={ this.rightClickHandler }
         />
@@ -163,7 +163,7 @@ const Seq = React.createClass({
           className={ `col-${item} tri` }
           data-note="rest"
           data-chan="tri"
-          data-beat={ item + 1 }
+          data-beat={ item }
           onClick={ this.clickHandler }
           onContextMenu={ this.rightClickHandler }
         />
@@ -177,7 +177,7 @@ const Seq = React.createClass({
           className={ `col-${item} nos` }
           data-note="rest"
           data-chan="nos"
-          data-beat={ item + 1 }
+          data-beat={ item }
           onClick={ this.clickHandler }
           onContextMenu={ this.rightClickHandler }
         />
