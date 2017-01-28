@@ -14,7 +14,7 @@ const store = createStore(reducer);
 
 const logState = state => { console.log(store.getState()); };
 
-//store.subscribe(logState);
+store.subscribe(logState);
 
 ReactDOM.render(
   <Provider store={ store }>

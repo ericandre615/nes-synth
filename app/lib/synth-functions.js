@@ -10,36 +10,74 @@ const initSynthContext = () => {
   return { context, masterGain }
 };
 
-const play = (synth, clockData, clockWorker = null, setPlayStatus = null) => {
-  clockData.isPlaying = !clockData.isPlaying;
+const play = (synth, clockData, clockWorker = null, setPlayStatus = null, drawStep = drawStep) => {
+  const isPlaying = !synth.isPlaying;
 
-  if(clockData.isPlaying) {
-    let currentNote = 0;
+  if(setPlayStatus) {
+    setPlayStatus(isPlaying);
+  } else {
+    synth.isPlaying = isPlaying;
+  }
+
+  if(isPlaying) {
     let nextNoteTime = synth.context.currentTime;
 
     clockData.nextNoteTime = nextNoteTime;
-    clockData.currentNote = currentNote;
   }
 
   if(clockWorker) {
-    if(clockData.isPlaying) {
+    if(isPlaying) {
       clockWorker.postMessage('start');
     } else {
       clockWorker.postMessage('stop');
     }
   }
 
- // if(isPlaying) {
- //   return requestAnimationFrame((rafTime) => {
- //     console.log('raf looping', synth);
- //     scheduler(synth, updateNoteTime);
- //   });
- // } else {
- //   cancelAnimationFrame(synth.timeoutId);
- //   return null;
- // }
+//  if(isPlaying) {
+//    return requestAnimationFrame(() => {
+//      drawStep(clockData.currentNote)
+//    });
+//  } else {
+//    cancelAnimationFrame(synth.timeoutId);
+//    return null;
+//  }
 
+    return true;
+};
+
+const stop = (synth, clockData, clockWorker = null, setPlayStatus = null, drawStep = drawStep) => {
+  const isPlaying = !synth.isPlaying;
+
+  if(setPlayStatus) {
+    setPlayStatus(isPlaying);
+  } else {
+    synth.isPlaying = isPlaying;
+  }
+
+  if(clockWorker) {
+    if(!isPlaying) {
+      clockWorker.postMessage('stop');
+    }
+  }
+
+  if(isPlaying) {
+    let nextNoteTime = synth.context.currentTime;
+
+    clockData.nextNoteTime = nextNoteTime;
+    clockData.currentNote = 0;
+  }
+
+  if(!isPlaying) {
+    cancelAnimationFrame(synth.timeoutId);
     return null;
+  }
+
+  return true;
+};
+
+const resetPlayHead = (resetPosition = 0, clockData) => {
+  clockData.currentNote = resetPosition;
+  return clockData;
 };
 
 const setNextNote = (synth, clockData) => {
@@ -60,7 +98,7 @@ const setNextNote = (synth, clockData) => {
   }
 };
 
-const scheduleNote = (synth, clockData) => {
+const scheduleNote = (synth, clockData, noteMap) => {
   const sq1 = synth.context.createOscillator();
   const sq2 = synth.context.createOscillator();
   const tri = synth.context.createOscillator();
@@ -71,10 +109,10 @@ const scheduleNote = (synth, clockData) => {
   tri.type = 'triangle';
   nos.type = 'sawtooth'; // temp for testing
 
-  sq1.frequency.value = synth.bars[0].sq1[clockData.currentNote].note;
-  sq2.frequency.value = synth.bars[0].sq2[clockData.currentNote].note;
-  tri.frequency.value = synth.bars[0].tri[clockData.currentNote].note;
-  nos.frequency.value = synth.bars[0].nos[clockData.currentNote].note;
+  sq1.frequency.value = noteMap[synth.bars[0].sq1[clockData.currentNote].note].freq;
+  sq2.frequency.value = noteMap[synth.bars[0].sq2[clockData.currentNote].note].freq;
+  tri.frequency.value = noteMap[synth.bars[0].tri[clockData.currentNote].note].freq;
+  nos.frequency.value = noteMap[synth.bars[0].nos[clockData.currentNote].note].freq;
 
   sq1.connect(synth.context.destination);
   sq2.connect(synth.context.destination);
@@ -94,16 +132,22 @@ const scheduleNote = (synth, clockData) => {
   return true;
 };
 
-const scheduler = (synth, clockData) => {
+const scheduler = (synth, clockData, noteMap) => {
   // schedule notes and advance pointer
 
   while(clockData.nextNoteTime < synth.context.currentTime + clockData.scheduleAheadTime) {
-    scheduleNote(synth, clockData);
+    scheduleNote(synth, clockData, noteMap);
     const nextNote = setNextNote(synth, clockData);
 
     clockData.nextNoteTime = nextNote.nextNoteTime;
     clockData.currentNote = nextNote.currentNote;
   }
+};
+
+const drawStep = (step = 0) => {
+  requestAnimationFrame(() => {
+    drawStep(step);
+  });
 };
 
 export {
@@ -112,7 +156,10 @@ export {
   scheduler,
   setNextNote,
   scheduleNote,
-  play
+  play,
+  stop,
+  resetPlayHead,
+  drawStep
 }
 
 export default {
@@ -121,5 +168,8 @@ export default {
   scheduler,
   setNextNote,
   scheduleNote,
-  play
+  play,
+  stop,
+  resetPlayHead,
+  drawStep
 };
