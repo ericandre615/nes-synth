@@ -12,3 +12,5 @@ just push sequencer buttons on and off and hit play. Will change while it's play
 
 Now you can select different note values for each note. Right click on the note to make that
 the current note, then select the value below.
+
+Ability to change volume per note per channel

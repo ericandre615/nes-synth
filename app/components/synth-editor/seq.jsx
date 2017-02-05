@@ -21,7 +21,6 @@ const clockData = {
   scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
 };
 
-
 let clockWorker = null;
 
 const Seq = React.createClass({
@@ -45,7 +44,7 @@ const Seq = React.createClass({
       bar: 0,
       beat: parseInt(cell.dataset.beat, 10),
       note: noteValue,
-      gain: (cell.classList.contains('on')) ? 1 : 0,
+      gain: (cell.classList.contains('on')) ? 1.0 : 0.0,
       filter: null,
       length: 0.05,
       chan: cell.dataset.chan
@@ -59,15 +58,7 @@ const Seq = React.createClass({
     const cell = e.target;
     e.preventDefault();
 
-    const note = {
-      bar: 0,
-      beat: parseInt(cell.dataset.beat, 10),
-      note: cell.dataset.note,
-      gain: (cell.classList.contains('on')) ? 1 : 0,
-      filter: null,
-      length: 0.05,
-      chan: cell.dataset.chan
-    };
+    const note = this.props.synth.bars[0][cell.dataset.chan][cell.dataset.beat];
 
     this.props.setCurrentNote(note);
   },
@@ -184,6 +175,8 @@ const Seq = React.createClass({
       );
     });
 
+    const currentNote = (this.props.synth.currentNote) ? this.props.synth.bars[this.props.synth.currentNote.bar][this.props.synth.currentNote.chan][this.props.synth.currentNote.beat] : {};
+
     return (
       <div id="temp">
         <TransportButtons
@@ -218,7 +211,7 @@ const Seq = React.createClass({
         </tbody>
         <tfoot></tfoot>
       </table>
-        <NoteAttibutes setNoteData={ this.props.setNoteData } currentNote={ this.props.synth.currentNote } />
+        { (this.props.synth.currentNote) ? <NoteAttibutes setNoteData={ this.props.setNoteData } currentNote={ currentNote } /> : null }
         </div>
     );
   }

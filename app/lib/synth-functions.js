@@ -103,6 +103,10 @@ const scheduleNote = (synth, clockData, noteMap) => {
   const sq2 = synth.context.createOscillator();
   const tri = synth.context.createOscillator();
   const nos = synth.context.createOscillator();
+  const sq1Gain = synth.context.createGain();
+  const sq2Gain = synth.context.createGain();
+  const triGain = synth.context.createGain();
+  const nosGain = synth.context.createGain();
 
   sq1.type = 'square';
   sq2.type = 'square';
@@ -114,10 +118,20 @@ const scheduleNote = (synth, clockData, noteMap) => {
   tri.frequency.value = noteMap[synth.bars[0].tri[clockData.currentNote].note].freq;
   nos.frequency.value = noteMap[synth.bars[0].nos[clockData.currentNote].note].freq;
 
-  sq1.connect(synth.context.destination);
-  sq2.connect(synth.context.destination);
-  tri.connect(synth.context.destination);
-  nos.connect(synth.context.destination);
+  sq1Gain.gain.value = synth.bars[0].sq1[clockData.currentNote].gain;
+  sq2Gain.gain.value = synth.bars[0].sq2[clockData.currentNote].gain;
+  triGain.gain.value = synth.bars[0].tri[clockData.currentNote].gain;
+  nosGain.gain.value = synth.bars[0].nos[clockData.currentNote].gain;
+
+  sq1.connect(sq1Gain);
+  sq2.connect(sq2Gain);
+  tri.connect(triGain);
+  nos.connect(nosGain);
+
+  sq1Gain.connect(synth.context.destination);
+  sq2Gain.connect(synth.context.destination);
+  triGain.connect(synth.context.destination);
+  nosGain.connect(synth.context.destination);
 
   sq1.start(clockData.nextNoteTime);
   sq2.start(clockData.nextNoteTime);

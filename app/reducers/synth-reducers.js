@@ -31,7 +31,7 @@ const initialState = { // synth
   currentNote: 0, // note that is currently last scheduled
   lookAhead: 25.0, // How frequently to call schedule (in milliseconds)
   scheduleAheadTime: 0.1, // How far to schedule audio (sec) calculated from lookAhead
-  currentNote: {},
+  currentNote: null,
   bars: [{
     sq1: createNewBar(initNotesPerBar, Object.assign({}, noteModel, { chan: 'sq1' })),
     sq2: createNewBar(initNotesPerBar, Object.assign({}, noteModel, { chan: 'sq2' })),
